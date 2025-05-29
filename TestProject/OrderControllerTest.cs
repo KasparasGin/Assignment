@@ -43,5 +43,37 @@ namespace TestProject
             Assert.NotNull(result);
             Assert.IsType<ReceiptResponse>(result.Value);
         }
+
+        [Fact]
+        public async Task PostOrder_ReturnsBadRequest_WhenPaymentFails()
+        {
+            var mockBillingService = new Mock<IBillingService>();
+
+            mockBillingService.Setup(x => x.ProcessOrder(It.IsAny<Order>())).ThrowsAsync(new Exception("Payment failed"));
+
+            var controller = new OrderController(mockBillingService.Object);
+
+            var result = await controller.PostOrder(orderRequest);
+
+            Assert.NotNull(result);
+            var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+            Assert.Equal(badRequest.Value, "Payment failed");
+        }
+        
+        [Fact]
+        public async Task PostOrder_ReturnsBadRequest_WhenInvalidPayment()
+        {
+            var mockBillingService = new Mock<IBillingService>();
+
+            mockBillingService.Setup(x => x.ProcessOrder(It.IsAny<Order>())).ThrowsAsync(new Exception("Unsupported payment gateway"));
+
+            var controller = new OrderController(mockBillingService.Object);
+
+            var result = await controller.PostOrder(orderRequest);
+
+            Assert.NotNull(result);
+            var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+            Assert.Equal(badRequest.Value, "Unsupported payment gateway");
+        }
     }
 }

@@ -19,7 +19,7 @@ namespace Assingment.PaymentGateways
                     return new CreditGateway();
 
                 default:
-                    throw new Exception("Unsupported payment gateway");
+                    throw new ArgumentException("Unsupported payment gateway");
 
             }
         }
